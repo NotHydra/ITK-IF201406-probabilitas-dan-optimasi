@@ -355,51 +355,34 @@ class PSO_Multi_Variable:
             )
         )
 
-    def show_plot_per_iteration(self):
+    def show_scatter_plot_per_iteration(self):
         # Fungsi untuk membuat visualisasi animasi pergerakan partikel
         # Membantu memahami dinamika pencarian solusi
         fig, ax = plt.subplots()
         ax.set_title("Pergerakan Partikel dalam Ruang Solusi")
-        ax.set_xlabel("Iterasi")
-        ax.set_ylabel("Posisi Partikel")
-
-        # Atur batas plot untuk memastikan seluruh pergerakan terlihat
-        ax.set_xlim(
-            0 - round(self.iteration_amount * 0.2),
-            self.iteration_amount + round(self.iteration_amount * 0.2),
-        )
-        ax.set_ylim(self.parameter_minimum, self.parameter_maximum)
+        ax.set_xlabel("x")
+        ax.set_ylabel("y")
 
         # Siapkan plot untuk melacak posisi setiap partikel
-        lines = []
+        scatters = []
         for i in range(self.particle_amount):
-            (line,) = ax.plot(
-                [0],
+            scatter = ax.scatter(
                 [self.x[i][0]],
+                [self.y[i][0]],
                 label=f"Partikel {i + 1}",
             )
 
-            lines.append(line)
-
-        # Plot garis untuk posisi global terbaik
-        (line_g_best,) = ax.plot(
-            [0],
-            [self.g_best_x[0]],
-            linestyle="--",
-            color="black",
-            label="Global Best",
-        )
+            scatters.append(scatter)
 
         def update(frame):
             # Fungsi update untuk animasi pergerakan
             # Memperbarui posisi setiap partikel pada setiap frame
             for i in range(self.particle_amount):
-                lines[i].set_data(list(range(frame + 1)), self.x[i][: frame + 1])
+                scatters[i].set_offsets(
+                    np.column_stack((self.x[i][: frame + 1], self.y[i][: frame + 1]))
+                )
 
-            # Perbarui posisi global terbaik
-            line_g_best.set_data(list(range(frame + 1)), self.g_best_x[: frame + 1])
-
-            return lines
+            return scatters
 
         # Buat animasi dengan interval dan frame yang ditentukan
         ani = FuncAnimation(
@@ -450,4 +433,4 @@ pso_kelompok_2_soal_2_bagian_b = PSO_Multi_Variable(
 
 pso_kelompok_2_soal_2_bagian_b.optimize()
 pso_kelompok_2_soal_2_bagian_b.show_table()
-# pso_kelompok_2_soal_2_bagian_b.show_plot_per_iteration()
+pso_kelompok_2_soal_2_bagian_b.show_scatter_plot_per_iteration()
