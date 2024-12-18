@@ -1,4 +1,7 @@
+import matplotlib.pyplot as plt
 import numpy as np
+
+from matplotlib.animation import FuncAnimation
 from tabulate import tabulate
 
 
@@ -19,27 +22,27 @@ class PSO_Single_Variable:
         self.fitness_function = fitness_function
         self.parameter_minimum = parameter_minimum
         self.parameter_maximum = parameter_maximum
-        # self.particle_amount = particle_amount
-        self.particle_amount = 3
+        self.particle_amount = particle_amount
+        # self.particle_amount = 3
         self.c1 = c1
         self.c2 = c2
-        # self.r_minimum = r_minimum
-        self.r_minimum = 0.5
-        # self.r_maximum = r_maximum
-        self.r_maximum = 0.5
+        self.r_minimum = r_minimum
+        # self.r_minimum = 0.5
+        self.r_maximum = r_maximum
+        # self.r_maximum = 0.5
         self.w = w
-        # self.iteration_amount = iteration_amount
-        self.iteration_amount = 3
+        self.iteration_amount = iteration_amount
+        # self.iteration_amount = 3
 
-        # self.x = [
-        #     [
-        #         round(
-        #             np.random.uniform(self.minimum_parameter, self.maximum_parameter), 4
-        #         )
-        #     ]
-        #     for _ in range(self.particle_amount)
-        # ]
-        self.x = [[0], [0.5], [1]]
+        self.x = [
+            [
+                round(
+                    np.random.uniform(self.parameter_minimum, self.parameter_maximum), 4
+                )
+            ]
+            for _ in range(self.particle_amount)
+        ]
+        # self.x = [[0], [0.5], [1]]
         self.v = [[0] for _ in range(self.particle_amount)]
 
         self.p_best = [[] for _ in range(self.particle_amount)]
@@ -182,6 +185,43 @@ class PSO_Single_Variable:
             )
         )
 
+    def show_plot_per_iteration(self):
+        fig, ax = plt.subplots()
+        ax.set_title("Pergerakan Partikel")
+        ax.set_xlabel("Iterasi")
+        ax.set_ylabel("Posisi Partikel")
+
+        ax.legend
+
+        ax.set_xlim(0, self.iteration_amount)
+        ax.set_ylim(self.parameter_minimum, self.parameter_maximum)
+
+        lines = []
+        for i in range(self.particle_amount):
+            (line,) = ax.plot(
+                [0],
+                [self.x[i][0]],
+                label=f"Partikel {i + 1}",
+            )
+
+            lines.append(line)
+
+        def update(frame):
+            for i in range(self.particle_amount):
+                lines[i].set_data(list(range(frame + 1)), self.x[i][: frame + 1])
+
+            return lines
+
+        ani = FuncAnimation(
+            fig,
+            update,
+            frames=range(self.iteration_amount + 1),
+            interval=500,
+            blit=True,
+        )
+
+        plt.show()
+
 
 fitness_function = lambda x: (3 * (x**2) + (2 * x) - 2) ** 2
 parameter_minimum = -2
@@ -208,3 +248,4 @@ pso_1_b = PSO_Single_Variable(
 )
 pso_1_b.optimize()
 pso_1_b.show_table()
+pso_1_b.show_plot_per_iteration()
