@@ -191,8 +191,6 @@ class PSO_Single_Variable:
         ax.set_xlabel("Iterasi")
         ax.set_ylabel("Posisi Partikel")
 
-        ax.legend
-
         ax.set_xlim(0, self.iteration_amount)
         ax.set_ylim(self.parameter_minimum, self.parameter_maximum)
 
@@ -206,9 +204,19 @@ class PSO_Single_Variable:
 
             lines.append(line)
 
+        (line_g_best,) = ax.plot(
+            [0],
+            [self.g_best[0]],
+            linestyle="--",
+            color="black",
+            label="gBest",
+        )
+
         def update(frame):
             for i in range(self.particle_amount):
                 lines[i].set_data(list(range(frame + 1)), self.x[i][: frame + 1])
+
+            line_g_best.set_data(list(range(frame + 1)), self.g_best[: frame + 1])
 
             return lines
 
@@ -216,10 +224,11 @@ class PSO_Single_Variable:
             fig,
             update,
             frames=range(self.iteration_amount + 1),
-            interval=500,
+            interval=100,
             blit=True,
         )
 
+        plt.legend()
         plt.show()
 
 
