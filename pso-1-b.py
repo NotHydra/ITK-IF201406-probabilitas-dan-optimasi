@@ -191,7 +191,10 @@ class PSO_Single_Variable:
         ax.set_xlabel("Iterasi")
         ax.set_ylabel("Posisi Partikel")
 
-        ax.set_xlim(0, self.iteration_amount)
+        ax.set_xlim(
+            0 - round(self.iteration_amount * 0.2),
+            self.iteration_amount + round(self.iteration_amount * 0.2),
+        )
         ax.set_ylim(self.parameter_minimum, self.parameter_maximum)
 
         lines = []
@@ -224,7 +227,7 @@ class PSO_Single_Variable:
             fig,
             update,
             frames=range(self.iteration_amount + 1),
-            interval=100,
+            interval=25,
             blit=True,
         )
 
