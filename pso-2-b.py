@@ -5,7 +5,7 @@ from matplotlib.animation import FuncAnimation
 from tabulate import tabulate
 
 
-class PSO_Single_Variable:
+class PSO_Multi_Variable:
     def __init__(
         self,
         fitness_function,  # Fungsi objektif yang akan dioptimasi/diminimalkan
@@ -62,70 +62,114 @@ class PSO_Single_Variable:
             ]
             for _ in range(self.particle_amount)
         ]
+        self.y = [
+            [
+                round(
+                    np.random.uniform(self.parameter_minimum, self.parameter_maximum), 4
+                )
+            ]
+            for _ in range(self.particle_amount)
+        ]
 
         # Inisialisasi kecepatan awal semua partikel dengan 0
         # Partikel mulai dari kondisi diam sebelum bergerak
-        self.v = [[0] for _ in range(self.particle_amount)]
+        self.vx = [[0] for _ in range(self.particle_amount)]
+        self.vy = [[0] for _ in range(self.particle_amount)]
 
         # Struktur untuk menyimpan posisi terbaik pribadi setiap partikel
         # Memungkinkan pelacakan pencapaian terbaik setiap partikel
-        self.p_best = [[] for _ in range(self.particle_amount)]
+        self.p_best_x = [[] for _ in range(self.particle_amount)]
+        self.p_best_y = [[] for _ in range(self.particle_amount)]
 
         # Struktur untuk menyimpan posisi terbaik global dari seluruh swarm
         # Akan diperbarui setiap iterasi jika ditemukan solusi lebih baik
-        self.g_best = []
+        self.g_best_x = []
+        self.g_best_y = []
 
-    def execute_fitness_function(self, x):
+    def execute_fitness_function(self, x, y):
         # Menjalankan fungsi fitness dengan pembulatan hasil
         # Memastikan konsistensi presisi dalam perhitungan
-        return round(self.fitness_function(x), 4)
+        return round(self.fitness_function(x, y), 4)
 
-    def get_latest_p_best(self):
+    def get_latest_p_best_x(self):
         # Mengambil posisi terbaik personal terbaru dari setiap partikel
         # Berguna untuk membandingkan dan memperbarui solusi
-        return list(map(lambda arr: arr[-1], self.p_best))
+        return list(map(lambda arr: arr[-1], self.p_best_x))
+
+    def get_latest_p_best_y(self):
+        # Mengambil posisi terbaik personal terbaru dari setiap partikel
+        # Berguna untuk membandingkan dan memperbarui solusi
+        return list(map(lambda arr: arr[-1], self.p_best_y))
 
     def get_latest_fitness_of_p_best(self):
         # Menghitung nilai fitness dari posisi terbaik personal terbaru
         # Membantu dalam mengevaluasi kualitas solusi individu
-        return list(map(self.execute_fitness_function, self.get_latest_p_best()))
+        return list(
+            map(
+                lambda pair: self.execute_fitness_function(pair[0], pair[1]),
+                list(zip(self.get_latest_p_best_x(), self.get_latest_p_best_y())),
+            )
+        )
 
     def get_best_value_latest_fitness_of_p_best(self):
         # Menemukan nilai fitness terbaik dari posisi personal terbaik
         # Digunakan untuk membandingkan dengan solusi global
         return min(self.get_latest_fitness_of_p_best())
 
-    def get_latest_g_best(self):
+    def get_latest_g_best_x(self):
         # Mengambil posisi terbaik global terbaru
         # Solusi terbaik yang ditemukan oleh seluruh swarm
-        return self.g_best[-1]
+        return self.g_best_x[-1]
+
+    def get_latest_g_best_y(self):
+        # Mengambil posisi terbaik global terbaru
+        # Solusi terbaik yang ditemukan oleh seluruh swarm
+        return self.g_best_y[-1]
 
     def get_latest_fitness_of_g_best(self):
         # Menghitung nilai fitness dari posisi terbaik global
         # Mengukur kualitas solusi terbaik keseluruhan
-        return self.execute_fitness_function(self.get_latest_g_best())
+        return self.execute_fitness_function(
+            self.get_latest_g_best_x(), self.get_latest_g_best_y()
+        )
 
     def set_latest_g_best(self):
         # Proses pemilihan dan pembaruan posisi terbaik global
-        if len(self.g_best) == 0:
+        if len(self.g_best_x) == 0 and len(self.g_best_y) == 0:
             # Pada iterasi pertama, pilih partikel dengan fitness terbaik
-            self.g_best.append(
-                self.get_latest_p_best()[np.argmin(self.get_latest_fitness_of_p_best())]
+            self.g_best_x.append(
+                self.get_latest_p_best_x()[
+                    np.argmin(self.get_latest_fitness_of_p_best())
+                ]
             )
+
+            self.g_best_y.append(
+                self.get_latest_p_best_y()[
+                    np.argmin(self.get_latest_fitness_of_p_best())
+                ]
+            )
+
         else:
             # Pada iterasi selanjutnya, perbarui g_best jika ditemukan solusi lebih baik
             if (self.get_latest_fitness_of_g_best()) <= (
                 self.get_best_value_latest_fitness_of_p_best()
             ):
                 # Pilih partikel dengan fitness terbaik sebagai g_best
-                self.g_best.append(
-                    self.get_latest_p_best()[
+                self.g_best_x.append(
+                    self.get_latest_p_best_x()[
+                        np.argmin(self.get_latest_fitness_of_p_best())
+                    ]
+                )
+
+                self.g_best_y.append(
+                    self.get_latest_p_best_y()[
                         np.argmin(self.get_latest_fitness_of_p_best())
                     ]
                 )
             else:
                 # Pertahankan g_best sebelumnya jika tidak ada perbaikan
-                self.g_best.append(self.get_latest_g_best())
+                self.g_best_x.append(self.get_latest_g_best_x())
+                self.g_best_y.append(self.get_latest_g_best_y())
 
     def optimize(self):
         # Algoritma utama Particle Swarm Optimization
@@ -133,19 +177,26 @@ class PSO_Single_Variable:
         for t in range(self.iteration_amount):
             # Fase 1: Update Personal Best (pBest)
             for i in range(self.particle_amount):
-                if len(self.p_best[i]) == 0:
+                if len(self.p_best_x[i]) == 0 and len(self.p_best_y[i]) == 0:
                     # Inisialisasi pBest untuk partikel pada iterasi pertama
-                    self.p_best[i].append(self.x[i][-1])
+                    self.p_best_x[i].append(self.x[i][-1])
+                    self.p_best_y[i].append(self.y[i][-1])
+
                 else:
                     # Perbarui pBest jika posisi saat ini memiliki fitness lebih baik
-                    if (self.execute_fitness_function(self.p_best[i][-1])) <= (
-                        self.execute_fitness_function(self.x[i][-1])
-                    ):
+                    if (
+                        self.execute_fitness_function(
+                            self.p_best_x[i][-1], self.p_best_y[i][-1]
+                        )
+                    ) <= (self.execute_fitness_function(self.x[i][-1], self.y[i][-1])):
                         # Pertahankan pBest sebelumnya
-                        self.p_best[i].append(self.p_best[i][-1])
+                        self.p_best_x[i].append(self.p_best_x[i][-1])
+                        self.p_best_y[i].append(self.p_best_y[i][-1])
+
                     else:
                         # Update pBest dengan posisi terbaru
-                        self.p_best[i].append(self.x[i][-1])
+                        self.p_best_x[i].append(self.x[i][-1])
+                        self.p_best_y[i].append(self.y[i][-1])
 
             # Fase 2: Update Global Best (gBest)
             self.set_latest_g_best()
@@ -159,29 +210,73 @@ class PSO_Single_Variable:
 
                 # Perbarui kecepatan partikel dengan persamaan PSO
                 # Kombinasi dari inersia, kognitif, dan komponen sosial
-                self.v[i].append(
-                    np.clip(
-                        (
-                            # Inersia: mempertahankan momentum sebelumnya
-                            (self.w * self.v[i][-1])
-                            # Komponen Kognitif: tarik ke posisi terbaik pribadi
-                            + (self.c1 * r1 * (self.p_best[i][-1] - self.x[i][-1]))
-                            # Komponen Sosial: tarik ke posisi terbaik global
-                            + (self.c2 * r2 * (self.g_best[-1] - self.x[i][-1]))
+                self.vx[i].append(
+                    round(
+                        np.clip(
+                            (
+                                # Inersia: mempertahankan momentum sebelumnya
+                                (self.w * self.vx[i][-1])
+                                # Komponen Kognitif: tarik ke posisi terbaik pribadi
+                                + (
+                                    self.c1
+                                    * r1
+                                    * (self.p_best_x[i][-1] - self.x[i][-1])
+                                )
+                                # Komponen Sosial: tarik ke posisi terbaik global
+                                + (self.c2 * r2 * (self.g_best_x[-1] - self.x[i][-1]))
+                            ),
+                            # Pastikan kecepatan dalam batas yang diizinkan
+                            self.parameter_minimum,
+                            self.parameter_maximum,
                         ),
-                        # Pastikan kecepatan dalam batas yang diizinkan
-                        self.parameter_minimum,
-                        self.parameter_maximum,
+                        4,
+                    )
+                )
+
+                self.vy[i].append(
+                    round(
+                        np.clip(
+                            (
+                                # Inersia: mempertahankan momentum sebelumnya
+                                (self.w * self.vy[i][-1])
+                                # Komponen Kognitif: tarik ke posisi terbaik pribadi
+                                + (
+                                    self.c1
+                                    * r1
+                                    * (self.p_best_y[i][-1] - self.y[i][-1])
+                                )
+                                # Komponen Sosial: tarik ke posisi terbaik global
+                                + (self.c2 * r2 * (self.g_best_y[-1] - self.y[i][-1]))
+                            ),
+                            # Pastikan kecepatan dalam batas yang diizinkan
+                            self.parameter_minimum,
+                            self.parameter_maximum,
+                        ),
+                        4,
                     )
                 )
 
                 # Perbarui posisi partikel berdasarkan kecepatan baru
                 # Pastikan posisi masih dalam rentang parameter
                 self.x[i].append(
-                    np.clip(
-                        (self.x[i][-1] + self.v[i][-1]),
-                        self.parameter_minimum,
-                        self.parameter_maximum,
+                    round(
+                        np.clip(
+                            (self.x[i][-1] + self.vx[i][-1]),
+                            self.parameter_minimum,
+                            self.parameter_maximum,
+                        ),
+                        4,
+                    )
+                )
+
+                self.y[i].append(
+                    round(
+                        np.clip(
+                            (self.y[i][-1] + self.vy[i][-1]),
+                            self.parameter_minimum,
+                            self.parameter_maximum,
+                        ),
+                        4,
                     )
                 )
 
@@ -191,14 +286,14 @@ class PSO_Single_Variable:
         headers = [
             "Iterasi",
             "Partikel",
-            "x",
-            "f(x)",
+            "(x, y)",
+            "f(x, y)",
             "v",
             "pBest",
             "f(pBest)",
             "gBest",
             "f(gBest)",
-            "Updated x",
+            "Updated (x, y)",
             "Updated v",
         ]
         table = []
@@ -211,15 +306,23 @@ class PSO_Single_Variable:
                     [
                         t + 1 if first_row else "",
                         f"Ke-{i + 1} ({i})",
-                        self.x[i][t],
-                        self.execute_fitness_function(self.x[i][t]),
-                        self.v[i][t],
-                        self.p_best[i][t],
-                        self.execute_fitness_function(self.p_best[i][t]),
-                        self.g_best[t] if first_row else "",
-                        self.execute_fitness_function(self.g_best[t]),
-                        self.x[i][t + 1],
-                        self.v[i][t + 1],
+                        f"({self.x[i][t]}, {self.y[i][t]})",
+                        self.execute_fitness_function(self.x[i][t], self.y[i][t]),
+                        f"({self.vx[i][t]}, {self.vy[i][t]})",
+                        f"({self.p_best_x[i][t]}, {self.p_best_y[i][t]})",
+                        self.execute_fitness_function(
+                            self.p_best_x[i][t], self.p_best_y[i][t]
+                        ),
+                        (
+                            f"({self.g_best_x[t]}, {self.g_best_y[t]})"
+                            if first_row
+                            else ""
+                        ),
+                        self.execute_fitness_function(
+                            self.g_best_x[t], self.p_best_y[i][t]
+                        ),
+                        f"({self.x[i][t + 1]}, {self.y[i][t + 1]})",
+                        f"({self.vx[i][t + 1]}, {self.vy[i][t + 1]})",
                     ]
                 )
 
@@ -276,7 +379,7 @@ class PSO_Single_Variable:
         # Plot garis untuk posisi global terbaik
         (line_g_best,) = ax.plot(
             [0],
-            [self.g_best[0]],
+            [self.g_best_x[0]],
             linestyle="--",
             color="black",
             label="Global Best",
@@ -289,7 +392,7 @@ class PSO_Single_Variable:
                 lines[i].set_data(list(range(frame + 1)), self.x[i][: frame + 1])
 
             # Perbarui posisi global terbaik
-            line_g_best.set_data(list(range(frame + 1)), self.g_best[: frame + 1])
+            line_g_best.set_data(list(range(frame + 1)), self.g_best_x[: frame + 1])
 
             return lines
 
@@ -307,23 +410,27 @@ class PSO_Single_Variable:
 
 
 # Definisi fungsi fitness untuk dioptimasi
-# Dalam kasus ini: f(x) = (3x² + 2x - 2)²
+# Dalam kasus ini: f(x) = (1.25 - x + xy)² + (2.5 - x + xy²)² + (0.5 - x + xy³)²
 # Fungsi ini memiliki beberapa minimum lokal dan global
-fitness_function = lambda x: (3 * (x**2) + (2 * x) - 2) ** 2
+fitness_function = lambda x, y: (
+    ((1.25 - x + (x * y)) ** 2)
+    + ((2.5 - x + (x * (y**2))) ** 2)
+    + ((0.5 - x + (x * (y**3))) ** 2)
+)
 
 # Parameter optimasi PSO yang akan digunakan
-parameter_minimum = -2  # Batas minimal pencarian solusi
-parameter_maximum = 2  # Batas maksimal pencarian solusi
+parameter_minimum = -3.5  # Batas minimal pencarian solusi
+parameter_maximum = 3.5  # Batas maksimal pencarian solusi
 particle_amount = 10  # Jumlah partikel dalam swarm
-c1 = 0.5  # Koefisien kognitif (pengaruh memori pribadi)
-c2 = 1  # Koefisien sosial (pengaruh informasi global)
+c1 = 1  # Koefisien kognitif (pengaruh memori pribadi)
+c2 = 0.5  # Koefisien sosial (pengaruh informasi global)
 r_minimum = 0  # Batas minimal bilangan acak
 r_maximum = 1  # Batas maksimal bilangan acak
 w = 1  # Faktor inersia
 iteration_amount = 100  # Total iterasi optimasi
 
 # Inisialisasi dan eksekusi algoritma PSO
-pso_1_b = PSO_Single_Variable(
+pso_kelompok_2_soal_2_bagian_b = PSO_Multi_Variable(
     fitness_function,
     parameter_minimum,
     parameter_maximum,
@@ -336,6 +443,6 @@ pso_1_b = PSO_Single_Variable(
     iteration_amount,
 )
 
-pso_1_b.optimize()
-pso_1_b.show_table()
-pso_1_b.show_plot_per_iteration()
+pso_kelompok_2_soal_2_bagian_b.optimize()
+pso_kelompok_2_soal_2_bagian_b.show_table()
+# pso_kelompok_2_soal_2_bagian_b.show_plot_per_iteration()
