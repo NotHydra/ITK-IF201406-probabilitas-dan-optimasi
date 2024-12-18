@@ -154,6 +154,11 @@ class PSO_Multi_Variable:
             if (self.get_latest_fitness_of_g_best()) <= (
                 self.get_best_value_latest_fitness_of_p_best()
             ):
+                # Pertahankan g_best sebelumnya jika tidak ada perbaikan
+                self.g_best_x.append(self.get_latest_g_best_x())
+                self.g_best_y.append(self.get_latest_g_best_y())
+
+            else:
                 # Pilih partikel dengan fitness terbaik sebagai g_best
                 self.g_best_x.append(
                     self.get_latest_p_best_x()[
@@ -166,10 +171,6 @@ class PSO_Multi_Variable:
                         np.argmin(self.get_latest_fitness_of_p_best())
                     ]
                 )
-            else:
-                # Pertahankan g_best sebelumnya jika tidak ada perbaikan
-                self.g_best_x.append(self.get_latest_g_best_x())
-                self.g_best_y.append(self.get_latest_g_best_y())
 
     def optimize(self):
         # Algoritma utama Particle Swarm Optimization
@@ -318,8 +319,12 @@ class PSO_Multi_Variable:
                             if first_row
                             else ""
                         ),
-                        self.execute_fitness_function(
-                            self.g_best_x[t], self.p_best_y[i][t]
+                        (
+                            self.execute_fitness_function(
+                                self.g_best_x[t], self.g_best_y[t]
+                            )
+                            if first_row
+                            else ""
                         ),
                         f"({self.x[i][t + 1]}, {self.y[i][t + 1]})",
                         f"({self.vx[i][t + 1]}, {self.vy[i][t + 1]})",

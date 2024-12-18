@@ -217,7 +217,11 @@ class PSO_Single_Variable:
                         self.p_best[i][t],
                         self.execute_fitness_function(self.p_best[i][t]),
                         self.g_best[t] if first_row else "",
-                        self.execute_fitness_function(self.g_best[t]),
+                        (
+                            self.execute_fitness_function(self.g_best[t])
+                            if first_row
+                            else ""
+                        ),
                         self.x[i][t + 1],
                         self.v[i][t + 1],
                     ]
