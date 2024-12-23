@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "particle-swarm-optimization"
+		},
+		{
+			"path": "./dijkstra"
+		}
+	],
+	"settings": {}
+}
