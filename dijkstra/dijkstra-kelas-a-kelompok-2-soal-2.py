@@ -240,7 +240,6 @@ class Dijkstra_Graph:
 
 
 # Membuat objek graf untuk menyelesaikan soal
-
 dijkstra_kelas_a_kelompok_2_soal_2: Dijkstra_Graph = Dijkstra_Graph()
 
 # Tambahkan vertex ke dalam graf
