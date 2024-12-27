@@ -367,8 +367,8 @@ class PSO_Multi_Variable:
         scatters = []
         for i in range(self.particle_amount):
             scatter = ax.scatter(
-                [self.x[i][0]],
-                [self.y[i][0]],
+                self.x[i][0:3],
+                self.y[i][0:3],
                 label=f"Partikel {i + 1}",
             )
 
@@ -377,9 +377,15 @@ class PSO_Multi_Variable:
         def update(frame):
             # Fungsi update untuk animasi pergerakan
             # Memperbarui posisi setiap partikel pada setiap frame
+
             for i in range(self.particle_amount):
                 scatters[i].set_offsets(
-                    np.column_stack((self.x[i][: frame + 1], self.y[i][: frame + 1]))
+                    np.column_stack(
+                        (
+                            self.x[i][frame + 1 : frame + 4],
+                            self.y[i][frame + 1 : frame + 4],
+                        )
+                    )
                 )
 
             return scatters
@@ -388,7 +394,7 @@ class PSO_Multi_Variable:
         ani = FuncAnimation(
             fig,
             update,
-            frames=range(self.iteration_amount + 1),
+            frames=range(self.iteration_amount + 1 - 3),
             interval=25,  # Kontrol kecepatan animasi
             blit=True,  # Optimasi performa animasi
         )
