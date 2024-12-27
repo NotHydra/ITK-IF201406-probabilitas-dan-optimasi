@@ -1,3 +1,4 @@
+from itertools import chain
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -365,6 +366,7 @@ class PSO_Multi_Variable:
 
         # Siapkan plot untuk melacak posisi setiap partikel
         scatters = []
+        arrows = []
         for i in range(self.particle_amount):
             scatter = ax.scatter(
                 self.x[i][0:3],
@@ -374,10 +376,22 @@ class PSO_Multi_Variable:
 
             scatters.append(scatter)
 
+            arrow_temp = []
+            for j in range(0, 2):
+                arrow_temp.append(
+                    ax.annotate(
+                        "",
+                        xytext=(self.x[i][j], self.y[i][j]),
+                        xy=(self.x[i][j + 1], self.y[i][j + 1]),
+                        arrowprops=dict(arrowstyle="->", color="black", lw=1),
+                    )
+                )
+
+            arrows.append(arrow_temp)
+
         def update(frame):
             # Fungsi update untuk animasi pergerakan
             # Memperbarui posisi setiap partikel pada setiap frame
-
             for i in range(self.particle_amount):
                 scatters[i].set_offsets(
                     np.column_stack(
@@ -388,14 +402,28 @@ class PSO_Multi_Variable:
                     )
                 )
 
-            return scatters
+                for j in range(0, 2):
+                    arrows[i][j].set_position(
+                        (self.x[i][j + frame + 1], self.y[i][j + frame + 1])
+                    )
+
+                    arrows[i][j].xytext = (
+                        self.x[i][j + frame + 1],
+                        self.y[i][j + frame + 1],
+                    )
+                    arrows[i][j].xy = (
+                        self.x[i][j + frame + 2],
+                        self.y[i][j + frame + 2],
+                    )
+
+            return scatters + list(chain.from_iterable(arrows))
 
         # Buat animasi dengan interval dan frame yang ditentukan
         ani = FuncAnimation(
             fig,
             update,
             frames=range(self.iteration_amount + 1 - 3),
-            interval=25,  # Kontrol kecepatan animasi
+            interval=250,  # Kontrol kecepatan animasi
             blit=True,  # Optimasi performa animasi
         )
 
