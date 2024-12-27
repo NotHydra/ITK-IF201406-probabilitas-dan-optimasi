@@ -385,6 +385,8 @@ class PSO_Multi_Variable:
         )
 
     def show_scatter_plot_per_iteration(self):
+        show_amout = 3
+
         # Fungsi untuk membuat visualisasi animasi pergerakan partikel
         # Membantu memahami dinamika pencarian solusi
         fig, ax = plt.subplots()
@@ -399,13 +401,16 @@ class PSO_Multi_Variable:
             color = self.get_color(i)
 
             scatter = ax.scatter(
-                self.x[i][0:2], self.y[i][0:2], label=f"Partikel {i + 1}", color=color
+                self.x[i][0:show_amout],
+                self.y[i][0:show_amout],
+                label=f"Partikel {i + 1}",
+                color=color,
             )
 
             scatters.append(scatter)
 
             arrow_temp = []
-            for j in range(0, 1):
+            for j in range(0, show_amout - 1):
                 arrow_temp.append(
                     ax.annotate(
                         "",
@@ -424,13 +429,13 @@ class PSO_Multi_Variable:
                 scatters[i].set_offsets(
                     np.column_stack(
                         (
-                            self.x[i][frame + 1 : frame + 3],
-                            self.y[i][frame + 1 : frame + 3],
+                            self.x[i][frame + 1 : frame + show_amout + 1],
+                            self.y[i][frame + 1 : frame + show_amout + 1],
                         )
                     )
                 )
 
-                for j in range(0, 1):
+                for j in range(0, show_amout - 1):
                     arrows[i][j].set_position(
                         (self.x[i][j + frame + 1], self.y[i][j + frame + 1])
                     )
@@ -450,8 +455,8 @@ class PSO_Multi_Variable:
         ani = FuncAnimation(
             fig,
             update,
-            frames=range(self.iteration_amount + 1 - 2),
-            interval=250,  # Kontrol kecepatan animasi
+            frames=range(self.iteration_amount + 1 - show_amout),
+            interval=500,  # Kontrol kecepatan animasi
             blit=True,  # Optimasi performa animasi
         )
 
@@ -471,7 +476,7 @@ fitness_function = lambda x, y: (
 # Parameter optimasi PSO yang akan digunakan
 parameter_minimum = -3.5  # Batas minimal pencarian solusi
 parameter_maximum = 3.5  # Batas maksimal pencarian solusi
-particle_amount = 10  # Jumlah partikel dalam swarm
+particle_amount = 5  # Jumlah partikel dalam swarm
 c1 = 1  # Koefisien kognitif (pengaruh memori pribadi)
 c2 = 0.5  # Koefisien sosial (pengaruh informasi global)
 r_minimum = 0  # Batas minimal bilangan acak
