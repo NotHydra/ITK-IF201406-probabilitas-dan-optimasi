@@ -423,6 +423,8 @@ class PSO_Multi_Variable:
             arrows.append(arrow_temp)
 
         def update(frame):
+            print(f"Iterasi Ke-{frame + show_amout}")
+
             # Fungsi update untuk animasi pergerakan
             # Memperbarui posisi setiap partikel pada setiap frame
             for i in range(self.particle_amount):
@@ -456,7 +458,7 @@ class PSO_Multi_Variable:
             fig,
             update,
             frames=range(self.iteration_amount + 1 - show_amout),
-            interval=500,  # Kontrol kecepatan animasi
+            interval=5,  # Kontrol kecepatan animasi
             blit=True,  # Optimasi performa animasi
         )
 
@@ -476,13 +478,13 @@ fitness_function = lambda x, y: (
 # Parameter optimasi PSO yang akan digunakan
 parameter_minimum = -3.5  # Batas minimal pencarian solusi
 parameter_maximum = 3.5  # Batas maksimal pencarian solusi
-particle_amount = 5  # Jumlah partikel dalam swarm
+particle_amount = 10  # Jumlah partikel dalam swarm
 c1 = 1  # Koefisien kognitif (pengaruh memori pribadi)
-c2 = 0.5  # Koefisien sosial (pengaruh informasi global)
+c2 = 1  # Koefisien sosial (pengaruh informasi global)
 r_minimum = 0  # Batas minimal bilangan acak
 r_maximum = 1  # Batas maksimal bilangan acak
 w = 1  # Faktor inersia
-iteration_amount = 100  # Total iterasi optimasi
+iteration_amount = 1000  # Total iterasi optimasi
 
 # Inisialisasi dan eksekusi algoritma PSO
 pso_kelompok_2_soal_2_bagian_b = PSO_Multi_Variable(
