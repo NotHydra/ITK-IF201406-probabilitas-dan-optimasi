@@ -92,6 +92,34 @@ class PSO_Multi_Variable:
         # Memastikan konsistensi presisi dalam perhitungan
         return round(self.fitness_function(x, y), 4)
 
+    def get_color(self, index):
+        colors = [
+            "#F9D82C",
+            "#F4BA3A",
+            "#B6C532",
+            "#2EC4A4",
+            "#23A0E5",
+            "#9EACFD",
+            "#3E26A8",
+        ]
+
+        hex_color_code = colors[index % len(colors)]
+        darken_percentage = 1 - ((index // len(colors) * 25) % 100) / 100
+
+        r = int(hex_color_code[1:3], 16)
+        g = int(hex_color_code[3:5], 16)
+        b = int(hex_color_code[5:7], 16)
+
+        r = int(r * darken_percentage)
+        g = int(g * darken_percentage)
+        b = int(b * darken_percentage)
+
+        r = max(0, min(255, r))
+        g = max(0, min(255, g))
+        b = max(0, min(255, b))
+
+        return f"#{r:02x}{g:02x}{b:02x}"
+
     def get_latest_p_best_x(self):
         # Mengambil posisi terbaik personal terbaru dari setiap partikel
         # Berguna untuk membandingkan dan memperbarui solusi
@@ -368,22 +396,22 @@ class PSO_Multi_Variable:
         scatters = []
         arrows = []
         for i in range(self.particle_amount):
+            color = self.get_color(i)
+
             scatter = ax.scatter(
-                self.x[i][0:3],
-                self.y[i][0:3],
-                label=f"Partikel {i + 1}",
+                self.x[i][0:2], self.y[i][0:2], label=f"Partikel {i + 1}", color=color
             )
 
             scatters.append(scatter)
 
             arrow_temp = []
-            for j in range(0, 2):
+            for j in range(0, 1):
                 arrow_temp.append(
                     ax.annotate(
                         "",
                         xytext=(self.x[i][j], self.y[i][j]),
                         xy=(self.x[i][j + 1], self.y[i][j + 1]),
-                        arrowprops=dict(arrowstyle="->", color="black", lw=1),
+                        arrowprops=dict(arrowstyle="->", color=color, lw=1),
                     )
                 )
 
@@ -396,13 +424,13 @@ class PSO_Multi_Variable:
                 scatters[i].set_offsets(
                     np.column_stack(
                         (
-                            self.x[i][frame + 1 : frame + 4],
-                            self.y[i][frame + 1 : frame + 4],
+                            self.x[i][frame + 1 : frame + 3],
+                            self.y[i][frame + 1 : frame + 3],
                         )
                     )
                 )
 
-                for j in range(0, 2):
+                for j in range(0, 1):
                     arrows[i][j].set_position(
                         (self.x[i][j + frame + 1], self.y[i][j + frame + 1])
                     )
@@ -422,7 +450,7 @@ class PSO_Multi_Variable:
         ani = FuncAnimation(
             fig,
             update,
-            frames=range(self.iteration_amount + 1 - 3),
+            frames=range(self.iteration_amount + 1 - 2),
             interval=250,  # Kontrol kecepatan animasi
             blit=True,  # Optimasi performa animasi
         )
